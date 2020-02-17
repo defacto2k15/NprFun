@@ -14,6 +14,7 @@
 		_BrightColor("BrightColor",Color) = (1.0,1.0,1.0,1.0)
 		_DarkColor("DarkColor",Color) = (0.0,0.0,0.0,0.0)
 		_BiColourDitheringMarginSize("_BiColourDitheringMarginSize",Range(0,0.5)) = 0.1
+		_BiColourEnabled("BiColourEnabled",Range(0,1)) = 0
     }
     SubShader
     {
@@ -36,6 +37,7 @@
 		float4 _BrightColor;
 		float4 _DarkColor;
 		float _BiColourDitheringMarginSize;
+		int _BiColourEnabled;
 
 #include "UnityPBSLighting.cginc"
 
@@ -76,21 +78,26 @@
 
 			float4 ditheredColor;
 			ditheredColor = originalAlbedo.rgbb;
-			//if (pixelLighting < 0.5) {
-			//	float ditherFactor = pixelLighting / _BiColourDitheringMarginSize;
-			//	if (ditherValue > ditherFactor) {
-			//		ditheredColor = _DarkColor;
-			//	}
-			//	//ditheredColor = step(ditherValue, ditherFactor);
-			//}
-			//else {
-			//	float ditherFactor = (1-pixelLighting) / _BiColourDitheringMarginSize;
-			//	if (ditherValue > ditherFactor) {
-			//		ditheredColor = _BrightColor;
-			//	}
-			//	//ditheredColor = step(ditherValue, ditherFactor);
-			//}
-			ditheredColor = step(ditherValue, pixelLighting);
+			if (_BiColourEnabled) {
+				ditheredColor = float4(0.4, 1, 0.5, 1)*0.7;
+				if (pixelLighting < 0.5) {
+					float ditherFactor = pixelLighting / _BiColourDitheringMarginSize;
+					if (ditherValue > ditherFactor) {
+						ditheredColor = _DarkColor;
+					}
+					//ditheredColor = step(ditherValue, ditherFactor);
+				}
+				else {
+					float ditherFactor = (1-pixelLighting) / _BiColourDitheringMarginSize;
+					if (ditherValue > ditherFactor) {
+						ditheredColor = _BrightColor;
+					}
+					//ditheredColor = step(ditherValue, ditherFactor);
+				}
+			}
+			else {
+				ditheredColor = step(ditherValue, pixelLighting);
+			}
 
 			return lerp(ditheredColor, pixelLighting, _DebugToStandardLighting);
 		}
